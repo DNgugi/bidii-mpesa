@@ -94,9 +94,13 @@ function bidii_mpesa_init(){
                 );
             }
 
-            //public function bidii_mpesa_daraja_api(){
+            public function bidii_mpesa_daraja_api(){
+            //Takes an order
+            //Gets the phone number and amount
+            //Constructs JSON request to Daraja API
+            //returns true if payment is successful
             
-           // }
+            }
 
             public function thank_you_page(){
                 if($this -> instructions) {
