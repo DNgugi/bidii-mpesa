@@ -4,7 +4,7 @@
  * Plugin URI:        http://teambidii.co.ke
  * Description:       Handle M-Pesa payments on your WooCommerce Shop
  * Version:           1
- * Author:            Duncan @ Team Bidii Consulting
+ * Author:            Team Bidii Consulting
  * Author URI:        http://teambidii.co.ke
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
@@ -23,7 +23,7 @@ function bidii_mpesa_init(){
                 $this->id =  "bidii_mpesa";
                 $this->icon = apply_filters('bidii_mpesa_icon',
                 plugins_url('/assets/icon.png', __FILE__) );
-                $this->has_fields = false;
+                $this->has_fields = true;
                 $this -> method_title = __('Bidii Mpesa Gateway', 'bidii-mpesa');
                 $this->method_description = __('Accept M-Pesa Payments on your WooCommerce website', 'bidii-mpesa');
                 $this->title = $this -> get_option('title');
@@ -36,6 +36,11 @@ function bidii_mpesa_init(){
 
                 add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
                 add_action('woocommerce_thank_you_' . $this->id, array($this,'thank_you_page'));
+                // We need custom JavaScript to obtain a token
+                add_action( 'wp_enqueue_scripts', array( $this, 'payment_scripts' ) );
+            
+                // You can also register a webhook here
+                // add_action( 'woocommerce_api_{webhook name}', array( $this, 'webhook' ) );
             }
             
             public function init_form_fields(){
@@ -76,30 +81,59 @@ function bidii_mpesa_init(){
                 ));
             }
 
-            public function process_payments($order_id){
-                $order_id = wc_get_order( $order_id );
+            public function payment_fields(){
 
-                $order->update_status('confirmed', __('Pending payment', 'bidii-mpesa'));
+                 if ( $this->description ) {
+                     echo wpautop( wp_kses_post( $this->description ) );
+                 }
+
+                 // I will echo() the form, but you can close PHP tags and print it directly in HTML
+                echo '<fieldset id="wc-' . esc_attr( $this->id ) . '-cc-form" class="wc-mpesa-form wc-payment-form" style="background:transparent;">';
+                
+                     // Add this action hook if you want your custom payment gateway to support it
+                do_action( 'woocommerce_mpesa_form_start', $this->id );
+                
+                     // I recommend to use inique IDs, because other gateways could already use #ccNo, #expdate, #cvc
+                     echo '<div class="form-row form-row-wide"><label> Your M-Pesa Number <span class="required">*</span></label>
+                         <input id="misha_ccNo" type="text" autocomplete="off">
+                        </div>
+                         <div class="clear"></div>';
+                
+                     do_action( 'woocommerce_mpesa_form_end', $this->id );
+                
+                     echo '<div class="clear"></div></fieldset>';
+                
+
+            }
+
+            public function validate_fields(){
+                
+            }
+
+            public function process_payments($order_id){
+                $order = wc_get_order( $order_id );
+
+                $order->update_status('on-hold', __('Pending payment', 'bidii-mpesa'));
 
                 //Add API to clear payment
                 //$this -> bidii_mpesa_daraja_api();
+                // $mpesa= new \Safaricom\Mpesa\Mpesa();
+                
+                // we received the payment
+                $order->payment_complete();
+                $order->reduce_order_stock();
 
-                $order -> reduce_order_stock();
+                // some notes to customer (replace true with false to make it private)
+                $order->add_order_note( 'Hey, your order is paid! Thank you!', true );
 
-                WC() -> cart -> empty_cart();
+                // Empty cart
+                $woocommerce->cart->empty_cart();
 
+                // Redirect to the thank you page
                 return array(
-                    'results' => 'success',
-                    'redirect' => $this -> get_return_url($order)
+                    'result' => 'success',
+                    'redirect' => $this->get_return_url( $order )
                 );
-            }
-
-            public function bidii_mpesa_daraja_api(){
-            //Takes an order
-            //Gets the phone number and amount
-            //Constructs JSON request to Daraja API
-            //returns true if payment is successful
-            
             }
 
             public function thank_you_page(){
@@ -107,7 +141,6 @@ function bidii_mpesa_init(){
                     echo wpautop($this->instructions);
                 }
             }
-
         }
     }
 }
