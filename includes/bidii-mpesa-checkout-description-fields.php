@@ -3,6 +3,8 @@
 add_filter('woocommerce_gateway_description', 'bidii_mpesa_checkout_description_fields', 20, 2);
 add_filter('woocommerce_checkout_process', 'bidii_mpesa_checkout_fields_validation');
 add_filter('woocommerce_checkout_update_order_meta', 'bidii_mpesa_checkout_update_order_meta', 10, 1);
+add_filter('woocommerce_admin_order_data_after_billing_address', 'bidii_mpesa_order_data_after_billing_address', 10, 1);
+add_filter('woocommerce_admin_order_item_meta_end', 'bidii_mpesa_order_item_meta_end', 10, 3);
 
 //Just the phone number field to accept the M-Pesa Number
 function bidii_mpesa_checkout_description_fields( $description, $payment_id){
@@ -40,3 +42,14 @@ function bidii_mpesa_checkout_update_order_meta($order_id){
     }
 }
 
+function bidii_mpesa_order_data_after_billing_address($order){
+
+    echo '<p><strong>' . __('M-Pesa number: ', 'bidii-mpesa') . '</strong><br>' .  get_post_meta($order -> get_id(), 'mpesa_number', true) . '</p>';
+
+}
+
+function bidii_mpesa_order_item_meta_end($item_id, $item, $order){
+
+    echo '<p><strong>' . __('M-Pesa number: ', 'bidii-mpesa') . '</strong><br>' .  get_post_meta($order -> get_id(), 'mpesa_number', true) . '</p>';
+
+}

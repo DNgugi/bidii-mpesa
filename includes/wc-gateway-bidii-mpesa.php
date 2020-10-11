@@ -297,11 +297,16 @@ private function get_matching_rates( $rate_ids ) {
  */
 public function process_payment( $order_id ) {
     $order = wc_get_order( $order_id );
+    
 
     if ( $order->get_total() > 0 ) {
         // Mark as processing or on-hold (payment won't be taken until delivery).
-        $order->update_status( apply_filters( 'bidii_mpesa_process_payment_order_status', $order->has_downloadable_item() ? 'on-hold' : 'processing', $order ), __( 'Payment to be made upon delivery.', 'bidii-mpesa' ) );
+        //$this -> bidii_mpesa_process_payment();
+
+        $order -> payment_complete();
+
     } else {
+
         $order->payment_complete();
     }
 
@@ -315,6 +320,10 @@ public function process_payment( $order_id ) {
     );
 }
 
+function bidii_mpesa_process_payment($order){
+     
+   return true;
+}
 /**
  * Output for the order received page.
  */

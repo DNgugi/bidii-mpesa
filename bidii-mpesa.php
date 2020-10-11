@@ -20,6 +20,9 @@ function bidii_mpesa_init(){
     if (class_exists('WC_Payment_Gateway')){
         require_once plugin_dir_path( __FILE__ ) . '/includes/wc-gateway-bidii-mpesa.php';
         require_once plugin_dir_path( __FILE__ ) . '/includes/bidii-mpesa-checkout-description-fields.php';
+        require_once plugin_dir_path( __FILE__ ) . '/includes/bidii-mpesa-generate-token.php';
+        require_once plugin_dir_path( __FILE__ ) . '/includes/bidii-mpesa-custom-post-type.php';
+        
     }
 }
 
